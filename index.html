@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="ISO-8859-1">
+    <title>Insert title here</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="padre">
+        <div class="info_divs">
+            <div>Juego de la Pelota</div>
+            <br>
+            <div id="contador_meta"></div>
+        </div>
+    
+        <div style="text-align: center;">
+            <canvas id="canvas" style="background-color: green;"></canvas>
+        </div>
+    </div>
+
+    <img src="imagenes/bola.png" hidden/>
+
+    <script type="text/javascript" src="librerias_js/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript">
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+
+        canvas.width = 800;
+        canvas.height = 600;
+
+        var imagen_bola = new Image();
+        imagen_bola.src = "imagenes/balon.png";
+
+        //coordenadas de la bola
+        var x = 0;
+        var y = 0;
+
+        //zona de meta
+        var meta = crearZona(Math.floor(Math.random()*(800-300)), Math.floor(Math.random()*(600-100)), Math.floor(Math.random()*(800-100)), Math.floor(Math.random()*(600-100)), "yellow");
+            //var meta = crearZona(700, 400, 100, 200, "yellow");
+
+        //obstaculos
+            //var obstaculo1 = crearZona(50, 250, 100, 150, "black");
+            //var obstaculo2 = crearZona(300, 150, 40, 200, "black");
+            //var obstaculo3 = crearZona(100, 400, 200, 30, "black");
+        var obstaculo1 = crearZona(Math.floor(Math.random()*(800-300)), Math.floor(Math.random()*(300-100)), Math.floor(Math.random()*(400-50)), Math.floor(Math.random()*(300-50)), "#4500A2");
+        var obstaculo2 = crearZona(Math.floor(Math.random()*(800-300)), Math.floor(Math.random()*(300-100)), Math.floor(Math.random()*(600-200)), Math.floor(Math.random()*(300-200)), "darkblue");
+        var obstaculo3 = crearZona(Math.floor(Math.random()*(800-300)), Math.floor(Math.random()*(300-100)), Math.floor(Math.random()*(400-100)), Math.floor(Math.random()*(600-300)), "#38B1FF");
+
+        //direcciones posibles
+        const DERECHA = 1;
+        const ABAJO = 2;
+        const IZQUIERDA = 3;
+        const ARRIBA = 4;
+
+        //direcciones en diagonal
+        const DERECHA_ABAJO = 12;
+        const DERECHA_ARRIBA = 14;
+        const IZQUIERDA_ABAJO = 32;
+        const IZQUIERDA_ARRIBA = 34;
+
+        //controlar cuando una tecla esta pulsada
+        var w_pulsada = false;
+        var a_pulsada = false;
+        var s_pulsada = false;
+        var d_pulsada = false;
+
+        //codigos de teclas
+        const TECLA_S = 115;
+        const TECLA_S_MAYUS = 83;
+        const TECLA_D = 100;
+        const TECLA_D_MAYUS = 68;
+        const TECLA_W = 119;
+        const TECLA_W_MAYUS = 87;
+        const TECLA_A = 97;
+        const TECLA_A_MAYUS = 65;
+
+        //direccion actual de la bola
+        var direccion = null;
+
+        //velocidad de la bola
+        var velocidad = 1;
+
+        //veces que ha metido la bola en la meta
+        var contMeta = 0;
+
+        function pintar() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(imagen_bola, x, y, 40, 40);
+            meta.pintar(ctx);
+            obstaculo1.pintar(ctx);
+            obstaculo2.pintar(ctx);
+            obstaculo3.pintar(ctx);
+            switch (direccion) {
+                case DERECHA:
+                    x+=velocidad;
+                    break;
+                case ABAJO:
+                    y+=velocidad;
+                    break;
+                case DERECHA_ABAJO:
+                    x+=velocidad;
+                    y+=velocidad;
+                    break;
+                case DERECHA_ARRIBA:
+                    x+=velocidad;
+                    y-=velocidad;
+                    break;
+                case IZQUIERDA:
+                    x-=velocidad;
+                    break;
+                case IZQUIERDA_ABAJO:
+                    x-=velocidad;
+                    y+=velocidad;
+                    break;
+                case IZQUIERDA_ARRIBA:
+                    x-=velocidad;
+                    y-=velocidad;
+                    break;
+                case ARRIBA:
+                    y-=velocidad;
+                    break;
+            }//end switch
+
+            //comprobar colisiones
+            if (obstaculo1.detectarColision(x, y)) {
+                obstaculos();
+                resetearZonas();
+            }else if (obstaculo2.detectarColision(x, y)) {
+                obstaculos();
+                resetearZonas();
+            }else if (obstaculo3.detectarColision(x, y)) {
+                obstaculos();
+                resetearZonas();
+            }else if(meta.detectarColision(x,y)) {
+                x = 0;
+                y = 0;
+                direccion = null;
+                alert("Has ganado, felicidades");
+                velocidad++;
+                contMeta++;
+                $("#contador_meta").html("Meta alcanzada: " + contMeta + " veces");
+                resetearZonas();
+            }else if(x > canvas.width || y > canvas.height || x < -40 || y < -40) {
+                x = 0;
+                y = 0;
+                direccion = null;
+                velocidad = 1;
+                alert("Has perdido, te saliste de la pantalla");
+                resetearZonas();
+            }
+
+        }//end pintar
+
+        function obstaculos() {
+            x = 0;
+            y = 0;
+            direccion = null;
+            velocidad = 1;
+            alert("Has perdido, te chocaste con un obstaculo");
+            if(contMeta > 0) {
+                alert("Has llegado a la meta " + contMeta + " veces");
+                contMeta = 0;
+                $("#contador_meta").html("");
+            }
+        }
+
+        function resetearZonas() {
+            meta = crearZona(Math.floor(Math.random()*(800-300)), Math.floor(Math.random()*(600-100)), Math.floor(Math.random()*(800-100)), Math.floor(Math.random()*(600-100)), "yellow");
+            obstaculo1 = crearZona(Math.floor(Math.random()*(800-300)), Math.floor(Math.random()*(300-100)), Math.floor(Math.random()*(400-50)), Math.floor(Math.random()*(300-50)), "#4500A2");
+            obstaculo2 = crearZona(Math.floor(Math.random()*(800-300)), Math.floor(Math.random()*(300-100)), Math.floor(Math.random()*(600-200)), Math.floor(Math.random()*(300-200)), "darkblue");
+            obstaculo3 = crearZona(Math.floor(Math.random()*(800-300)), Math.floor(Math.random()*(300-100)), Math.floor(Math.random()*(400-100)), Math.floor(Math.random()*(600-300)), "#38B1FF");
+        }
+
+        function crearZona(x, y, ancho, alto, color) {
+            var zona = {
+                x: x,
+                y: y,
+                ancho: ancho,
+                alto: alto,
+                color: color,
+                pintar: function(ctx) {
+                    ctx.fillStyle = color;
+                    ctx.fillRect(this.x, this.y, this.ancho, this.alto);
+                },
+                detectarColision: function(xbola, ybola) {
+                    if (xbola >= this.x && xbola <= (this.x + ancho) && 
+                    ybola >= this.y && ybola <= (this.y + alto)) {
+                        return true;
+                    }else {
+                        return false;
+                    }
+                }
+            };
+            return zona;
+        }//end crearZona
+
+        //atención al teclado:
+        $(document).keypress(function(e){
+            switch(e.which){
+                case TECLA_S:
+                case TECLA_S_MAYUS:
+                    s_pulsada = true;
+                    if(d_pulsada){
+                        direccion = DERECHA_ABAJO;
+                    }else if(a_pulsada){
+                        direccion = IZQUIERDA_ABAJO;
+                    }else {
+                        direccion = ABAJO;
+                    }
+                    break;
+                case TECLA_D:
+                case TECLA_D_MAYUS:
+                    d_pulsada = true;
+                    if(s_pulsada){
+                        direccion = DERECHA_ABAJO;
+                    }else if(w_pulsada){
+                        direccion = DERECHA_ARRIBA;
+                    }else {
+                        direccion = DERECHA;
+                    }
+                    break;
+                case TECLA_W:
+                case TECLA_W_MAYUS:
+                    w_pulsada = true;
+                    if(a_pulsada){
+                        direccion = IZQUIERDA_ARRIBA;
+                    }else if(d_pulsada){
+                        direccion = DERECHA_ARRIBA;
+                    }else {
+                        direccion = ARRIBA;
+                    }
+                    break;
+                case TECLA_A:
+                case TECLA_A_MAYUS:
+                    a_pulsada = true;
+                    if(s_pulsada){
+                        direccion = IZQUIERDA_ABAJO;
+                    }else if(w_pulsada){
+                        direccion = IZQUIERDA_ARRIBA;
+                    }else {
+                        direccion = IZQUIERDA;
+                    }
+                    break;
+            }//end switch
+        });//end keypress
+
+        //el siguiente evento se ejecuta cuando se deja de pulsar una tecla
+        $(document).keyup(function(e) {
+            switch (e.which) {
+                case TECLA_S:
+                case TECLA_S_MAYUS:
+                    s_pulsada = false;
+                    break;
+                case TECLA_D:
+                case TECLA_D_MAYUS:
+                    d_pulsada = false;
+                    break;
+                case TECLA_W:
+                case TECLA_W_MAYUS:
+                    w_pulsada = false;
+                    break;
+                case TECLA_A:
+                case TECLA_A_MAYUS:
+                    a_pulsada = false;
+                    break;
+            }//end switch 
+        });//end keyup
+
+        alert("lleva la pelota a la zona amarilla\n" + 
+        "tecla D -> derecha\n" + "tecla S -> abajo\n" +
+        "combina las teclas para avanzar en diagonal");
+        var timer = setInterval(pintar, 10);
+
+    </script>
+
+</body>
+</html>

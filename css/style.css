@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Readex+Pro&display=swap');
+
+.padre {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.info_divs {
+    font-family: 'Readex Pro', sans-serif;
+    font-size: large;
+    top: 1em;
+    position: absolute;
+    color: white;
+}
+
+body {
+    background-image: url("../imagenes/background.jpg");
+}
+
+#canvas {
+    border: 15px solid steelblue;
+    border-radius: 15px;
+}
